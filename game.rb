@@ -1,5 +1,6 @@
 require_relative 'board'
 require_relative 'human_player'
+require_relative 'computer_player'
 
 class Game
   attr_reader :board, :current_player, :previous_player
@@ -7,7 +8,7 @@ class Game
   def initialize
     @board = Board.new
     @current_player = HumanPlayer.new("Wil", board, :white)
-    @previous_player = HumanPlayer.new("Sam", board, :black)
+    @previous_player = ComputerPlayer.new("Sam", board, :black)
   end
 
   def play
@@ -15,7 +16,12 @@ class Game
       current_player.play_turn
       switch_players!
     end
-    puts "game over"
+
+    current_player.render_display
+    previous_player.render_display
+
+    puts "Checkmate!"
+    puts "#{previous_player.name} won!"
   end
 
   def switch_players!

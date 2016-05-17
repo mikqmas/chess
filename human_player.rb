@@ -35,4 +35,8 @@ class HumanPlayer
     end
     result
   end
+
+  def render_display
+    @display.render
+  end
 end

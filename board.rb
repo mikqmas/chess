@@ -73,7 +73,7 @@ class Board
   end
 
   def empty?(pos)
-    self[pos].is_a?(NullPiece)
+    on_grid?(pos) && self[pos].is_a?(NullPiece)
   end
 
   def size
@@ -83,6 +83,16 @@ class Board
   def [](pos)
     row, col = pos
     grid[row][col]
+  end
+
+  def pieces_colored(color)
+    pieces = []
+    grid.each do |row|
+      row.each do |piece|
+        pieces << piece if piece.color == color
+      end
+    end
+    pieces
   end
 
   private
@@ -131,15 +141,6 @@ class Board
     end
   end
 
-  def pieces_colored(color)
-    pieces = []
-    grid.each do |row|
-      row.each do |piece|
-        pieces << piece if piece.color == color
-      end
-    end
-    pieces
-  end
 
   def []=(pos, val)
     row, col = pos
