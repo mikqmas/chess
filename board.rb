@@ -85,7 +85,7 @@ class Board
     grid[row][col]
   end
 
-  #private
+  private
   def move_into_check?(start_pos, end_pos)
     piece = self[start_pos]
 
