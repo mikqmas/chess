@@ -1,6 +1,7 @@
 require_relative 'piece'
 
 class Pawn < Piece
+
   def moves
     moves = []
     row, col = position
@@ -8,6 +9,12 @@ class Pawn < Piece
     # move forawrd
     pos = [row + forward, col]
     moves << pos if board.empty?(pos)
+
+    #en passant move
+    unless has_moved
+      pos = [row + forward*2, col]
+      moves << pos if board.empty?(pos)
+    end
 
     # move diagonal
     [[row + forward, col - 1], [row + forward, col + 1]].each do |move|
