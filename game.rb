@@ -12,7 +12,6 @@ class Game
 
   def play
     until over?
-      puts "im over"
       current_player.play_turn
       switch_players!
     end
@@ -24,7 +23,7 @@ class Game
   end
 
   def over?
-    false #board.checkmate?(:black) || board.checkmate?(:white)
+    board.checkmate?(:black) || board.checkmate?(:white)
   end
 end
 

@@ -1,11 +1,11 @@
 require_relative 'sliding_piece'
 
-class Queen < SlidingPiece
+class Bishop < SlidingPiece
   def move_dirs
-    [:sideways, :diagonal]
+    [:diagonal]
   end
 
   def to_s
-    " ♛ "
+    " B "
   end
 end

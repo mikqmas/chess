@@ -8,6 +8,6 @@ class NullPiece
   end
 
   def color
-    :orange
+    :null_color
   end
 end

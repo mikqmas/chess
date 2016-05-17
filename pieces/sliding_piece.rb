@@ -5,7 +5,7 @@ class SlidingPiece < Piece
   SIDEWAYS_DIRECTIONS = [[0, 1], [1, 0], [0, -1], [-1, 0]]
   DIAGONAL_DIRECTIONS = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
 
-  def initialize(color, position, board, move_distance = -1)
+  def initialize(color, position, board, move_distance = Float::INFINITY)
     super(color, position, board)
     @move_distance = move_distance
   end
@@ -24,24 +24,22 @@ class SlidingPiece < Piece
       end
     end
 
-    moves
+    valid_moves(moves)
   end
 
   def moves_in_dir(dir)
-    distance = 0
     moves = []
-    pos = position.dup
-    pos[0] += dir[0]
-    pos[1] += dir[1]
-    while board.on_grid?(pos) && board[pos].is_a?(NullPiece) && distance != move_distance
-      moves << pos.dup
-      pos[0] += dir[0]
-      pos[1] += dir[1]
+    pos = [position[0] + dir[0], position[1] + dir[1]]
+    distance = 1
+
+    while board.on_grid?(pos) && board.empty?(pos) && distance <= move_distance
+      moves << pos
+      pos = [pos[0] + dir[0], pos[1] + dir[1]]
       distance += 1
     end
-    if distance != move_distance && board.on_grid?(pos) && !board[pos].is_a?(NullPiece) && board[pos].color != self.color
-      moves << pos.dup
-    end
+
+    moves << pos unless distance > move_distance
+
     moves
   end
 

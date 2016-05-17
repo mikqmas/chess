@@ -4,7 +4,7 @@ require_relative 'board'
 
 class Display
   attr_reader :board
-  attr_accessor :selected_pos
+  attr_accessor :selected_pos, :message
 
   include Cursorable
 
@@ -12,6 +12,7 @@ class Display
     @board = board
     @cursor_pos = [0, 0]
     @selected_pos = nil
+    @message = ""
   end
 
   def build_grid
@@ -33,9 +34,9 @@ class Display
     elsif [i, j] == @cursor_pos
       bg = :light_green
     elsif (i + j).odd?
-      bg = :light_blue
-    else
       bg = :blue
+    else
+      bg = :light_blue
     end
     bg
   end
@@ -43,5 +44,6 @@ class Display
   def render
     system("clear")
     build_grid.each { |row| puts row.join }
+    puts message
   end
 end

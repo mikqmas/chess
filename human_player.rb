@@ -1,4 +1,5 @@
 require_relative 'display'
+require_relative 'illegal_move_error'
 
 class HumanPlayer
   attr_reader :name, :display, :board, :color
@@ -12,15 +13,18 @@ class HumanPlayer
 
   def play_turn
     move_from = move
-    raise ArgumentError if board[move_from].color != self.color
+    raise PieceSelectionError if board[move_from].color != self.color
     display.selected_pos = move_from
 
     move_to = move
     display.selected_pos = nil
 
     board.move(move_from, move_to)
-  rescue ArgumentError
+  rescue IllegalMoveError => e
+    display.message = e.message
     retry
+  ensure
+    display.message = ""
   end
 
   def move

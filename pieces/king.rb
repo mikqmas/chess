@@ -10,6 +10,6 @@ class King < SlidingPiece
   end
 
   def to_s
-    " ♚ "
+    " K "
   end
 end

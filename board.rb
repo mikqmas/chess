@@ -1,10 +1,5 @@
-require_relative 'null_piece'
-require_relative 'bishop'
-require_relative 'rook'
-require_relative 'knight'
-require_relative 'pawn'
-require_relative 'king'
-require_relative 'queen'
+require_relative 'pieces_manifest'
+require_relative 'illegal_move_error'
 
 class Board
   attr_reader :grid, :last_piece_removed
@@ -27,18 +22,6 @@ class Board
   def piece_at(pos)
     if pos[0] == 0
       if pos[1] == 0 || pos[1] == BOARD_SIZE - 1
-        Rook.new(:black, pos, self)
-      elsif pos[1] == 1 || pos[1] == BOARD_SIZE - 2
-        Knight.new(:black, pos, self)
-      elsif pos[1] == 2 || pos[1] == BOARD_SIZE - 3
-        Bishop.new(:black, pos, self)
-      elsif pos[1] == 3
-        Queen.new(:black, pos, self)
-      else
-        King.new(:black, pos, self)
-      end
-    elsif pos[0] == BOARD_SIZE - 1
-      if pos[1] == 0 || pos[1] == BOARD_SIZE - 1
         Rook.new(:white, pos, self)
       elsif pos[1] == 1 || pos[1] == BOARD_SIZE - 2
         Knight.new(:white, pos, self)
@@ -49,10 +32,22 @@ class Board
       else
         King.new(:white, pos, self)
       end
+    elsif pos[0] == BOARD_SIZE - 1
+      if pos[1] == 0 || pos[1] == BOARD_SIZE - 1
+        Rook.new(:black, pos, self)
+      elsif pos[1] == 1 || pos[1] == BOARD_SIZE - 2
+        Knight.new(:black, pos, self)
+      elsif pos[1] == 2 || pos[1] == BOARD_SIZE - 3
+        Bishop.new(:black, pos, self)
+      elsif pos[1] == 4
+        Queen.new(:black, pos, self)
+      else
+        King.new(:black, pos, self)
+      end
     elsif pos[0] == 1
-      Pawn.new(:black, pos, self)
-    elsif pos[0] == BOARD_SIZE - 2
       Pawn.new(:white, pos, self)
+    elsif pos[0] == BOARD_SIZE - 2
+      Pawn.new(:black, pos, self)
     else
       NullPiece.instance
     end
@@ -60,24 +55,44 @@ class Board
 
   def move(start_pos, end_pos)
     moving_piece = self[start_pos]
-    raise ArgumentError if moving_piece.is_a?(NullPiece)
-    raise ArgumentError unless moving_piece.moves.include?(end_pos)
+    raise IllegalMoveError unless moving_piece.moves.include?(end_pos)
+    raise MoveIntoCheckError if move_into_check?(start_pos, end_pos)
 
-    @last_piece_removed = self[end_pos]
-
-    self[end_pos] = moving_piece
-    self[start_pos] = NullPiece.instance
-
-    moving_piece.position = end_pos
+    move!(start_pos, end_pos)
   end
 
-  def undo_move(start_pos, end_pos)
-    moving_piece = self[end_pos]
+  def checkmate?(color)
+    #all color possible moves move into check
+    pieces_colored(color).all? do |piece|
+      piece.moves.all?{|move| move_into_check?(piece.position, move)}
+    end
+  end
 
-    self[start_pos] = moving_piece
-    self[end_pos] = @last_piece_removed
+  def on_grid?(pos)
+    pos.all? {|term| term.between?(0, BOARD_SIZE - 1)}
+  end
 
-    moving_piece.position = start_pos
+  def empty?(pos)
+    self[pos].is_a?(NullPiece)
+  end
+
+  def size
+    grid.length
+  end
+
+  def [](pos)
+    row, col = pos
+    grid[row][col]
+  end
+
+  #private
+  def move_into_check?(start_pos, end_pos)
+    piece = self[start_pos]
+
+    move!(start_pos, end_pos)
+    check = in_check?(piece.color)
+    undo_move(start_pos, end_pos)
+    check
   end
 
   def in_check?(color)
@@ -86,43 +101,48 @@ class Board
     opponents_moves.include?(king_pos)
   end
 
-  def checkmate?(color)
-    possible_moves(color).empty?
+  #for checking for future checks
+  def move!(start_pos, end_pos)
+    #save removed piece and then remove it
+    @last_piece_removed = self[end_pos]
+    self[end_pos] = NullPiece.instance
+
+    self[start_pos], self[end_pos] = self[end_pos], self[start_pos]
+
+    self[end_pos].position = end_pos
+  end
+
+  def undo_move(start_pos, end_pos)
+    self[start_pos], self[end_pos] = self[end_pos], self[start_pos]
+
+    #restore removed piece
+    self[end_pos] = @last_piece_removed
+
+    self[start_pos].position = start_pos
   end
 
   def king_position(color)
-    @grid.each do |row|
-      row.each do |piece|
-        return piece.position if piece.is_a?(King) && piece.color == color
-      end
-    end
+    pieces_colored(color).find {|piece| piece.is_a?(King)}.position
   end
 
   def possible_moves(color)
-    possible_moves = []
-    @grid.each do |row|
+    pieces_colored(color).inject([]) do |possible_moves, piece|
+      possible_moves + piece.moves
+    end
+  end
+
+  def pieces_colored(color)
+    pieces = []
+    grid.each do |row|
       row.each do |piece|
-        possible_moves += piece.moves if !piece.is_a?(NullPiece) && piece.color == color
+        pieces << piece if piece.color == color
       end
     end
-    possible_moves
-  end
-
-  def on_grid?(pos)
-    pos.all? {|term| term.between?(0, BOARD_SIZE - 1)}
-  end
-
-  def [](pos)
-    row, col = pos
-    grid[row][col]
+    pieces
   end
 
   def []=(pos, val)
     row, col = pos
     grid[row][col] = val
-  end
-
-  def size
-    grid.length
   end
 end
