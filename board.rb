@@ -8,7 +8,7 @@ class Board
 
   def initialize
     @grid = make_board
-    @last_piece_removed = NullPiece.instance
+    @removed_pieces = []
   end
 
   def make_board
@@ -53,11 +53,18 @@ class Board
     end
   end
 
+  def possible_moves(color)
+    pieces_colored(color).inject([]) do |possible_moves, piece|
+      possible_moves + piece.moves
+    end
+  end
+
   def move(start_pos, end_pos)
     moving_piece = self[start_pos]
     raise IllegalMoveError unless moving_piece.moves.include?(end_pos)
     raise MoveIntoCheckError if move_into_check?(start_pos, end_pos)
 
+    moving_piece.has_moved = true
     move!(start_pos, end_pos)
   end
 
@@ -95,6 +102,32 @@ class Board
     pieces
   end
 
+  def undo_move(start_pos, end_pos)
+    self[start_pos], self[end_pos] = self[end_pos], self[start_pos]
+
+    #restore removed piece
+    self[end_pos] = @removed_pieces.pop
+
+    self[start_pos].position = start_pos
+  end
+
+  #for checking for future checks
+  def move!(start_pos, end_pos)
+    #save removed piece and then remove it
+    @removed_pieces << self[end_pos]
+    self[end_pos] = NullPiece.instance
+
+    self[start_pos], self[end_pos] = self[end_pos], self[start_pos]
+
+    self[end_pos].position = end_pos
+  end
+
+  def in_check?(color)
+    king_pos = king_position(color)
+    opponents_moves = possible_moves(color == :black ? :white : :black)
+    opponents_moves.include?(king_pos)
+  end
+
   private
   def move_into_check?(start_pos, end_pos)
     piece = self[start_pos]
@@ -105,42 +138,9 @@ class Board
     check
   end
 
-  def in_check?(color)
-    king_pos = king_position(color)
-    opponents_moves = possible_moves(color == :black ? :white : :black)
-    opponents_moves.include?(king_pos)
-  end
-
-  #for checking for future checks
-  def move!(start_pos, end_pos)
-    #save removed piece and then remove it
-    @last_piece_removed = self[end_pos]
-    self[end_pos] = NullPiece.instance
-
-    self[start_pos], self[end_pos] = self[end_pos], self[start_pos]
-
-    self[end_pos].position = end_pos
-  end
-
-  def undo_move(start_pos, end_pos)
-    self[start_pos], self[end_pos] = self[end_pos], self[start_pos]
-
-    #restore removed piece
-    self[end_pos] = @last_piece_removed
-
-    self[start_pos].position = start_pos
-  end
-
   def king_position(color)
     pieces_colored(color).find {|piece| piece.is_a?(King)}.position
   end
-
-  def possible_moves(color)
-    pieces_colored(color).inject([]) do |possible_moves, piece|
-      possible_moves + piece.moves
-    end
-  end
-
 
   def []=(pos, val)
     row, col = pos

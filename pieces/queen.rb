@@ -6,6 +6,10 @@ class Queen < SlidingPiece
   end
 
   def to_s
-    " Q "
+    " ♛ "
+  end
+
+  def num_points
+    9
   end
 end

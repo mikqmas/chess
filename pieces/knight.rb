@@ -11,6 +11,10 @@ class Knight < Piece
   end
 
   def to_s
-    " N "
+    " ♞ "
+  end
+
+  def num_points
+    3
   end
 end

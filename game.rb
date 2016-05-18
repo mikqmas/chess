@@ -7,12 +7,12 @@ class Game
 
   def initialize
     @board = Board.new
-    @current_player = HumanPlayer.new("Wil", board, :white)
+    @current_player = ComputerPlayer.new("Wil", board, :white)
     @previous_player = ComputerPlayer.new("Sam", board, :black)
   end
 
   def play
-    until over?
+    until over? || give_up?
       current_player.play_turn
       switch_players!
     end
@@ -20,8 +20,13 @@ class Game
     current_player.render_display
     previous_player.render_display
 
-    puts "Checkmate!"
-    puts "#{previous_player.name} won!"
+    if give_up?
+      puts "#{previous_player.name} gave up."
+      puts "#{current_player.name} won!"
+    else
+      puts "Checkmate!"
+      puts "#{previous_player.name} won!"
+    end
   end
 
   def switch_players!
@@ -30,6 +35,10 @@ class Game
 
   def over?
     board.checkmate?(:black) || board.checkmate?(:white)
+  end
+
+  def give_up?
+    current_player.give_up || previous_player.give_up
   end
 end
 

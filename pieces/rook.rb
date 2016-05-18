@@ -6,6 +6,10 @@ class Rook < SlidingPiece
   end
 
   def to_s
-    " R "
+    " ♜ "
+  end
+
+  def num_points
+    5
   end
 end

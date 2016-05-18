@@ -10,7 +10,7 @@ class Display
 
   def initialize(board)
     @board = board
-    @cursor_pos = [0, 0]
+    @cursor_pos = nil
     @selected_pos = nil
     @message = ""
   end

@@ -29,6 +29,10 @@ class Pawn < Piece
   end
 
   def to_s
-    " P "
+    " ♟ "
+  end
+
+  def num_points
+    1
   end
 end
